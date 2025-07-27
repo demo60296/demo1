@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, ArrowUpDown, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTransactions, useDeleteTransaction } from '../hooks/useTransactions';
 import { TransactionFilters, TRANSACTION_TYPES } from '../types/transaction';
+import { useFormatters } from '../hooks/useFormatters';
 import CategoryIcon from '../components/CategoryIcon';
 
 function Transactions() {
@@ -16,6 +17,7 @@ function Transactions() {
     search: searchTerm
   });
   const deleteTransaction = useDeleteTransaction();
+  const { formatCurrency, formatDateTime } = useFormatters();
 
   const handleDeleteTransaction = async (id: string, description: string) => {
     if (window.confirm(`Are you sure you want to delete "${description}" transaction?`)) {
@@ -33,39 +35,26 @@ function Transactions() {
     setFilters(prev => ({ ...prev, search: searchTerm }));
   };
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
-  };
-
-  const formatDateTime = (date: string, time: any) => {
-    // const dateObj = new Date(date);
-    // const timeStr = `${(time?.hour ?? 0).toString().padStart(2, '0')}:${(time?.minute ?? 0).toString().padStart(2, '0')}`;
-    return {
-      date: "Date",
-      time: "timeStr"
-    };
-  };
-
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: number) => {
     switch (type) {
-      case '1': // Expense
+      case 1: // Expense
         return <TrendingDown className="w-5 h-5 text-red-600" />;
-      case '2': // Income
+      case 2: // Income
         return <TrendingUp className="w-5 h-5 text-green-600" />;
-      case '3': // Transfer
+      case 3: // Transfer
         return <ArrowUpDown className="w-5 h-5 text-blue-600" />;
       default:
         return <ArrowUpDown className="w-5 h-5 text-gray-600" />;
     }
   };
 
-  const getAmountColor = (type: string) => {
+  const getAmountColor = (type: number) => {
     switch (type) {
-      case '1': // Expense
+      case 1: // Expense
         return 'text-red-600';
-      case '2': // Income
+      case 2: // Income
         return 'text-green-600';
-      case '3': // Transfer
+      case 3: // Transfer
         return 'text-blue-600';
       default:
         return 'text-gray-600';
@@ -94,7 +83,7 @@ function Transactions() {
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transactions</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">Track all your financial transactions</p>
@@ -123,12 +112,6 @@ function Transactions() {
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className="px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm sm:text-base"
-          >
-            Search
-          </button>
         </form>
       </div>
 
@@ -197,7 +180,7 @@ function Transactions() {
                           {transaction.account && (
                             <span className="hidden lg:inline truncate">• {transaction.account.name}</span>
                           )}
-                          {transaction.type === '3' && transaction.toAccount && (
+                          {transaction.type === 3 && transaction.toAccount && (
                             <span className="hidden lg:inline truncate">→ {transaction.toAccount.name}</span>
                           )}
                         </div>
@@ -207,7 +190,7 @@ function Transactions() {
                     <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                       <div className="text-right">
                         <p className={`text-sm sm:text-base font-semibold ${getAmountColor(transaction.type)}`}>
-                          {transaction.type === '1' ? '-' : transaction.type === '2' ? '+' : ''}
+                          {transaction.type === 1 ? '-' : transaction.type === 2 ? '+' : ''}
                           {formatCurrency(transaction.amount)}
                         </p>
                       </div>

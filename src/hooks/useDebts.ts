@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 import apiClient from '../lib/axios';
 import { 
   Debt, 
@@ -10,7 +11,8 @@ import {
   UpdateDebtRecordData,
   PaginatedDebts,
   PaginatedDebtRecords,
-  DebtRecordSummary
+  DebtRecordSummary,
+  DebtSummary
 } from '../types/debt';
 
 // Debt hooks
@@ -79,6 +81,16 @@ export const useBorrowingDebts = (page = 0, size = 10) => {
   });
 };
 
+export const useDebtSummary = () => {
+  return useQuery<DebtSummary>({
+    queryKey: ['debts', 'summary'],
+    queryFn: async () => {
+      const response = await apiClient.get('/debts/summary');
+      return response.data.data;
+    },
+  });
+};
+
 export const usePayableDebts = () => {
   return useQuery<Debt[]>({
     queryKey: ['debts', 'payable'],
@@ -102,6 +114,7 @@ export const useReceivableDebts = () => {
 export const useCreateDebt = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async (data: CreateDebtData) => {
@@ -110,7 +123,19 @@ export const useCreateDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Debt created',
+        message: 'Your debt record has been created successfully.',
+      });
       navigate('/debts');
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to create debt',
+        message: 'Please try again.',
+      });
     },
   });
 };
@@ -118,6 +143,7 @@ export const useCreateDebt = () => {
 export const useUpdateDebt = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateDebtData }) => {
@@ -126,13 +152,26 @@ export const useUpdateDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Debt updated',
+        message: 'Your debt record has been updated successfully.',
+      });
       navigate('/debts');
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to update debt',
+        message: 'Please try again.',
+      });
     },
   });
 };
 
 export const useDeleteDebt = () => {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -140,6 +179,18 @@ export const useDeleteDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Debt deleted',
+        message: 'The debt record has been deleted successfully.',
+      });
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to delete debt',
+        message: 'Please try again.',
+      });
     },
   });
 };
@@ -252,6 +303,7 @@ export const useDebtRecordSummary = (debtId: string) => {
 
 export const useCreateDebtRecord = () => {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async ({ debtId, data }: { debtId: string; data: CreateDebtRecordData }) => {
@@ -262,12 +314,25 @@ export const useCreateDebtRecord = () => {
       queryClient.invalidateQueries({ queryKey: ['debt-records', debtId] });
       queryClient.invalidateQueries({ queryKey: ['debt-record-summary', debtId] });
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Record created',
+        message: 'Your debt record has been created successfully.',
+      });
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to create record',
+        message: 'Please try again.',
+      });
     },
   });
 };
 
 export const useUpdateDebtRecord = () => {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateDebtRecordData }) => {
@@ -278,12 +343,25 @@ export const useUpdateDebtRecord = () => {
       queryClient.invalidateQueries({ queryKey: ['debt-records'] });
       queryClient.invalidateQueries({ queryKey: ['debt-record-summary'] });
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Record updated',
+        message: 'Your debt record has been updated successfully.',
+      });
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to update record',
+        message: 'Please try again.',
+      });
     },
   });
 };
 
 export const useDeleteDebtRecord = () => {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -293,6 +371,18 @@ export const useDeleteDebtRecord = () => {
       queryClient.invalidateQueries({ queryKey: ['debt-records'] });
       queryClient.invalidateQueries({ queryKey: ['debt-record-summary'] });
       queryClient.invalidateQueries({ queryKey: ['debts'] });
+      addToast({
+        type: 'success',
+        title: 'Record deleted',
+        message: 'The debt record has been deleted successfully.',
+      });
+    },
+    onError: () => {
+      addToast({
+        type: 'error',
+        title: 'Failed to delete record',
+        message: 'Please try again.',
+      });
     },
   });
 };
