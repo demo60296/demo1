@@ -18,26 +18,7 @@ export default function PaymentModeModal({
   onPaymentModeAdded 
 }: PaymentModeModalProps) {
   const [selectedType, setSelectedType] = useState<PaymentModeType>('1');
-  const createPaymentMode = useCreatePaymentMode();
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreatePaymentModeData>({
-    defaultValues: {
-      name: '',
-      type: '1'
-    }
-  });
-
-  const onSubmit = async (data: CreatePaymentModeData) => {
-    try {
-      const paymentModeData = { ...data, type: selectedType };
-      await createPaymentMode.mutateAsync({ accountId, data: paymentModeData });
-      onPaymentModeAdded(paymentModeData);
-      reset();
-      onClose();
-    } catch (error) {
-      console.error('Failed to create payment mode:', error);
-    }
-  };
 
   const handleClose = () => {
     reset();

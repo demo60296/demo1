@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, DollarSign, Building2, Wallet, CreditCard, Banknote, Smartphone, FileText, Globe } from 'lucide-react';
 import { 
   useDebt, 
   useDebtRecords, 
@@ -13,8 +13,9 @@ import {
 import { DEBT_RECORD_TYPES } from '../types/debt';
 import DebtRecordTypeModal from '../components/DebtRecordTypeModal';
 import { useFormatters } from '../hooks/useFormatters';
+import ConfirmationModal from '../components/ConfirmationModal';
 
-const tabs = ['All', 'Paid', 'Received', 'Adjustment'];
+const tabs = ['All', 'Paid', 'Received'];
 
 function DebtRecords() {
   const { debtId } = useParams<{ debtId: string }>();
@@ -22,12 +23,12 @@ function DebtRecords() {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(10);
   const [isRecordTypeModalOpen, setIsRecordTypeModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<{ id: string; description: string } | null>(null);
 
   const { data: debt } = useDebt(debtId || '');
   const { data: allRecords, isLoading: allLoading } = useDebtRecords(debtId || '', currentPage, pageSize);
   const { data: paidRecords, isLoading: paidLoading } = usePaidRecords(debtId || '', currentPage, pageSize);
   const { data: receivedRecords, isLoading: receivedLoading } = useReceivedRecords(debtId || '', currentPage, pageSize);
-  const { data: adjustmentRecords, isLoading: adjustmentLoading } = useAdjustmentRecords(debtId || '', currentPage, pageSize);
   const { data: summary } = useDebtRecordSummary(debtId || '');
   const deleteRecord = useDeleteDebtRecord();
   const { formatCurrency } = useFormatters();
@@ -39,8 +40,6 @@ function DebtRecords() {
         return { data: paidRecords, isLoading: paidLoading };
       case 2:
         return { data: receivedRecords, isLoading: receivedLoading };
-      case 3:
-        return { data: adjustmentRecords, isLoading: adjustmentLoading };
       default:
         return { data: allRecords, isLoading: allLoading };
     }
@@ -51,10 +50,11 @@ function DebtRecords() {
   const totalPages = currentData?.totalPages || 0;
   const totalElements = currentData?.totalElements || 0;
 
-  const handleDeleteRecord = async (id: string, description: string) => {
-    if (window.confirm(`Are you sure you want to delete "${description}" record?`)) {
+  const handleDeleteRecord = async () => {
+    if (recordToDelete) {
       try {
-        await deleteRecord.mutateAsync(id);
+        await deleteRecord.mutateAsync(recordToDelete.id);
+        setRecordToDelete(null);
       } catch (error) {
         console.error('Failed to delete record:', error);
       }
@@ -87,6 +87,55 @@ function DebtRecords() {
     }
   };
 
+  const getAccountIcon = (type: number) => {
+    switch (type) {
+      case 1: // Bank
+        return <Building2 className="w-4 h-4 text-blue-600" />;
+      case 2: // Wallet
+        return <Wallet className="w-4 h-4 text-green-600" />;
+      case 3: // Credit Card
+        return <CreditCard className="w-4 h-4 text-purple-600" />;
+      case 4: // Cash
+        return <Banknote className="w-4 h-4 text-yellow-600" />;
+      default:
+        return <Building2 className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getPaymentModeIcon = (type: number) => {
+    switch (type) {
+      case 1: // UPI
+        return <Smartphone className="w-3 h-3 text-blue-600" />;
+      case 2: // Debit Card
+        return <CreditCard className="w-3 h-3 text-purple-600" />;
+      case 3: // Cheque
+        return <FileText className="w-3 h-3 text-gray-600" />;
+      case 4: // Internet Banking
+        return <Globe className="w-3 h-3 text-green-600" />;
+      default:
+        return <CreditCard className="w-3 h-3 text-gray-600" />;
+    }
+  };
+
+  const getAccountTypeName = (type: number) => {
+    switch (type) {
+      case 1: return 'Bank Account';
+      case 2: return 'Wallet';
+      case 3: return 'Credit Card';
+      case 4: return 'Cash';
+      default: return 'Account';
+    }
+  };
+
+  const getPaymentModeTypeName = (type: number) => {
+    switch (type) {
+      case 1: return 'UPI';
+      case 2: return 'Debit Card';
+      case 3: return 'Cheque';
+      case 4: return 'Internet Banking';
+      default: return 'Payment Mode';
+    }
+  };
   if (!debtId) {
     return (
       <div className="p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto">
@@ -170,32 +219,32 @@ function DebtRecords() {
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Received</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Receivable</p>
                 <p className="text-xl sm:text-2xl font-bold text-green-600">
-                  {formatCurrency(summary?.totalReceived || 0)}
+                  {formatCurrency(debt?.remainingAmount || 0)}
                 </p>
               </div>
               <div className="bg-green-100 rounded-full p-2 sm:p-3">
                 <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Amount owed to you</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">Amount you will receive</p>
           </div>
         )}
 
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Paid</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Received</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                {formatCurrency(summary?.totalPaid || 0)}
+                {formatCurrency(summary?.totalReceived || 0)}
               </p>
             </div>
             <div className="bg-blue-100 rounded-full p-2 sm:p-3">
               <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">Total transactions</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Money received so far</p>
         </div>
       </div>
 
@@ -272,7 +321,16 @@ function DebtRecords() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 lg:space-x-4 text-xs sm:text-sm text-gray-500">
                         <span>{formatDate(record.date)}</span>
                         {record.account && (
-                          <span className="hidden lg:inline truncate">• {record.account.name}</span>
+                          <span className="hidden sm:inline flex items-center">
+                            • {getAccountIcon(record.account.type)} 
+                            <span className="ml-1 truncate">{record.account.name}</span>
+                          </span>
+                        )}
+                        {record.paymentMode && (
+                          <span className="hidden md:inline flex items-center">
+                            • {getPaymentModeIcon(record.paymentMode.type)} 
+                            <span className="ml-1 truncate">{record.paymentMode.name}</span>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -294,7 +352,7 @@ function DebtRecords() {
                         <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                       </Link>
                       <button
-                        onClick={() => handleDeleteRecord(record.id, record.description)}
+                        onClick={() => setRecordToDelete({ id: record.id, description: record.description })}
                         disabled={deleteRecord.isPending}
                         className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50 rounded-md hover:bg-gray-50"
                       >
@@ -347,6 +405,18 @@ function DebtRecords() {
         isOpen={isRecordTypeModalOpen}
         onClose={() => setIsRecordTypeModalOpen(false)}
         debtId={debtId}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!recordToDelete}
+        onClose={() => setRecordToDelete(null)}
+        onConfirm={handleDeleteRecord}
+        title="Delete Record"
+        message={`Are you sure you want to delete "${recordToDelete?.description}" record? This action cannot be undone.`}
+        confirmText="Delete Record"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        isPending={deleteRecord.isPending}
       />
     </div>
   );
