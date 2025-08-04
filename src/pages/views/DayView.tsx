@@ -1,17 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { ChevronLeft, ChevronRight, Calendar, TrendingUp, TrendingDown, ArrowUpDown, Edit, Trash2, Building2, Wallet, CreditCard, Banknote, Smartphone, FileText, Globe } from 'lucide-react';
 import { useDaySummary } from '../../hooks/useSummary';
 import { useDeleteTransaction } from '../../hooks/useTransactions';
 import { useFormatters } from '../../hooks/useFormatters';
 import { TRANSACTION_TYPES } from '../../types/transaction';
 import ConfirmationModal from '../../components/ConfirmationModal';
+=======
+import { ChevronLeft, ChevronRight, Calendar, TrendingUp, TrendingDown, ArrowUpDown, Edit, Trash2 } from 'lucide-react';
+import { useDaySummary } from '../../hooks/useViews';
+import { useDeleteTransaction } from '../../hooks/useTransactions';
+import { useFormatters } from '../../hooks/useFormatters';
+import { TRANSACTION_TYPES } from '../../types/transaction';
+import CategoryIcon from '../../components/CategoryIcon';
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
 
 function DayView() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const currentDate = new Date();
+<<<<<<< HEAD
   const [transactionToDelete, setTransactionToDelete] = useState<{ id: string; description: string } | null>(null);
+=======
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
   
   const [currentDay, setCurrentDay] = useState(
     parseInt(searchParams.get('day') || currentDate.getDate().toString())
@@ -25,7 +42,11 @@ function DayView() {
 
   const { data: dayData, isLoading } = useDaySummary(currentDay, currentMonth, currentYear);
   const deleteTransaction = useDeleteTransaction();
+<<<<<<< HEAD
   const { formatCurrency } = useFormatters();
+=======
+  const { formatCurrency, formatDateTime } = useFormatters();
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
 
   // Update URL when date changes
   useEffect(() => {
@@ -50,11 +71,18 @@ function DayView() {
     setCurrentYear(currentDateObj.getFullYear());
   };
 
+<<<<<<< HEAD
   const handleDeleteTransaction = async () => {
     if (transactionToDelete) {
       try {
         await deleteTransaction.mutateAsync(transactionToDelete.id);
         setTransactionToDelete(null);
+=======
+  const handleDeleteTransaction = async (id: string, description: string) => {
+    if (window.confirm(`Are you sure you want to delete "${description}" transaction?`)) {
+      try {
+        await deleteTransaction.mutateAsync(id);
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
       } catch (error) {
         console.error('Failed to delete transaction:', error);
       }
@@ -87,6 +115,7 @@ function DayView() {
     }
   };
 
+<<<<<<< HEAD
   const getAccountIcon = (type: number) => {
     switch (type) {
       case 1: // Bank
@@ -117,6 +146,8 @@ function DayView() {
     }
   };
 
+=======
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
   const formatDateString = () => {
     const date = new Date(currentYear, currentMonth - 1, currentDay);
     return date.toLocaleDateString('en-US', {
@@ -295,6 +326,7 @@ function DayView() {
                     
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 lg:space-x-4 text-xs sm:text-sm text-gray-500">
                       <span>Transaction ID: {transaction.id.slice(0, 8)}...</span>
+<<<<<<< HEAD
                       {transaction.account && (
                         <span className="hidden sm:inline flex items-center">
                           • {getAccountIcon(transaction.account.type)} 
@@ -307,6 +339,8 @@ function DayView() {
                           <span className="ml-1">{transaction.paymentMode.name}</span>
                         </span>
                       )}
+=======
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
                     </div>
                   </div>
                 </div>
@@ -327,10 +361,14 @@ function DayView() {
                       <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <button
+<<<<<<< HEAD
                       onClick={() => setTransactionToDelete({ 
                         id: transaction.id, 
                         description: transaction.description || 'transaction' 
                       })}
+=======
+                      onClick={() => handleDeleteTransaction(transaction.id, transaction.description || 'transaction')}
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
                       disabled={deleteTransaction.isPending}
                       className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50 rounded-md hover:bg-gray-50"
                     >
@@ -343,6 +381,7 @@ function DayView() {
           </div>
         )}
       </div>
+<<<<<<< HEAD
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
@@ -355,6 +394,8 @@ function DayView() {
         confirmButtonClass="bg-red-600 hover:bg-red-700"
         isPending={deleteTransaction.isPending}
       />
+=======
+>>>>>>> 99c73c5d57ec78c23152860f738e329c5559800e
     </div>
   );
 }
